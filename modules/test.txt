@@ -1,0 +1,21 @@
+1  2  3   a d g j   1a2b3c, 1d2e3f, 1g2h3i, 1j2k3l
+          b e h k      A       D       G       J
+          c f i l
+
+
+a         b         y 
+
+
+
+
+
+
+
+
+    def backward(self, dh, dc):
+        f,g,i,o = self.params
+        x,h,c = self.cache
+
+        dx = (dc tan' * dh) + (dc*g sig') + (dc*i tan') + (dc*c sig')
+        dh = 
+        dc =
