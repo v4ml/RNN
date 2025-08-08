@@ -4,7 +4,7 @@ from common.optimizer import SGD
 from common.np import *
 from common import config
 config.GPU = True
-
+# commit TEST
 class RnnlmGen(BetterRnnlm):
     # def __init__(self, model):
     #     self.model = model
