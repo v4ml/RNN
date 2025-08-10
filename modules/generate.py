@@ -9,36 +9,40 @@ class RnnlmGen(BetterRnnlm):
     # def __init__(self, model):
     #     self.model = model
 
-    def generate2(self, start_word, skip_ids=None, sample_size=1000):
+    def generate2(self, start_id, skip_ids=None, sample_size=100):
         corpus, word_to_id, id_to_word = ptb.load_data('train')
         corpus_test, word_to_id_test, id_to_word_test = ptb.load_data('test')
         vocab_size = int(len(word_to_id))
 
+        start_id = word_to_id['you']
+        word_ids = [start_id]
+
         skip_words = ['N', '<unk>', '$']
         skip_ids = [word_to_id[w] for w in skip_words]
 
-        xs = word_to_id[start_word]
-        
-        #xs = np.asarray(xs)
-        word_ids = [word_to_id[start_word]]
+        x = start_id
+        # while len(word_ids) < sample_size:
+        #     x = np.array(x).reshape(1, 1)
+        #     score = self.predict(x).flatten()
+        #     p = softmax(score).flatten()
 
-        wordvec_size = 650
-        hidden_size = 650
-        lr = 20.0
-
-        model = BetterRnnlm(vocab_size, wordvec_size, hidden_size)
-        model.load_params()
+        #     sampled = np.random.choice(len(p), size=1, p=p)
+        #     if (skip_ids is None) or (sampled not in skip_ids):
+        #         x = sampled
+        #         word_ids.append(int(x))
 
         while len(word_ids) < sample_size:
-            xs = np.array(xs).reshape(1, 1) 
-            #index = int(np.argmax(model.predict(xs)))
-            score = self.predict(xs).flatten()
-            p = self.softmax(score).flatten()
-            index = np.random.choice(len(p), size=1, p=p)
+            x = np.array(x).reshape(1, 1)
+            index = int(np.argmax(self.predict(x)))
+            #score = self.predict(x).flatten()
+            #p = softmax(score).flatten()
 
+            #sampled = np.random.choice(len(p), size=1, p=p)
             if (skip_ids is None) or (index not in skip_ids):
-                xs = index
-                word_ids.append(int(index))
+                x = index
+            word_ids.append(int(x))                
+
+        #return word_ids
         
         sentence = ' '.join([id_to_word[i] for i in word_ids])
         print(sentence)
@@ -80,4 +84,4 @@ class RnnlmGen(BetterRnnlm):
 
 
 gen = RnnlmGen(10000, 650, 650)
-gen.generate('you')
+gen.generate2('you')

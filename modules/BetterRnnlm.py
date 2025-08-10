@@ -57,7 +57,7 @@ class BetterRnnlm:
         # ]
 
 
-        self.load_params('./BetterRnnlm.pkl')
+        self.load_params('./modules/dataset/BetterRnnlm.pkl')
         self.layers = [
             TimeEmbedding2(self.params[0]),
             #dropout(dropout_ratio),

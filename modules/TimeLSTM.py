@@ -1,6 +1,7 @@
 #import numpy as np
 from common.np import *
 from LSTM import LSTM
+from LSTM import LSTM2
 
 class TimeLSTM2:
     def __init__(self, Wx, Wh, b, stateful=False):
@@ -29,7 +30,7 @@ class TimeLSTM2:
         hs = np.zeros((N, T, H), dtype='f')
         #cs = np.zeros((N, T, H), dtype='f')
         for t in range(T):
-            layer = LSTM(Wx, Wh, b)
+            layer = LSTM2(Wx, Wh, b)
             self.h, self.c = layer.forward(xs[:, t, :], self.h, self.c)
             hs[:, t, :] = self.h
             #cs[:, t, :] = self.c
