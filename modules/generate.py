@@ -3,6 +3,7 @@ from dataset import ptb
 from common.optimizer import SGD
 from common.np import *
 from common import config
+
 config.GPU = True
 # commit TEST22
 class RnnlmGen(BetterRnnlm):
@@ -70,6 +71,21 @@ class RnnlmGen(BetterRnnlm):
 
         sentence = ' '.join([id_to_word[i] for i in word_ids])
         print(sentence)
+
+
+        self.reset_state()
+
+        start_words = 'the meaning of life is'
+        start_ids = [word_to_id[w] for w in start_words.split(' ')]
+
+        for x in start_ids[:-1]:
+            x = np.array(x).reshape(1, 1)
+            self.predict(x)                
+        word_ids = start_ids[:-1] + word_ids
+        txt = ' '.join([id_to_word[i] for i in word_ids])
+        txt = txt.replace(' <eos>', '.\n')
+        print(txt)
+
 
     def softmax(self, x):
         if x.ndim == 2:

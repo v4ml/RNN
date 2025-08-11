@@ -57,7 +57,7 @@ class BetterRnnlm:
         # ]
 
 
-        self.load_params('./modules/dataset/BetterRnnlm.pkl')
+        self.load_params('./BetterRnnlm.pkl')
         self.layers = [
             TimeEmbedding2(self.params[0]),
             #dropout(dropout_ratio),
@@ -104,7 +104,7 @@ class BetterRnnlm:
         with open(file_name, 'wb') as f:
             pickle.dump(self.params, f)
 
-    def load_params(self, file_name='./modules/BetterRnnlm.pkl'):
+    def load_params(self, file_name='./modules/dataset/20250806.pkl'):
         with open(file_name, 'rb') as f:
             self.params = pickle.load(f)
         self.params = [np.asarray(p) for p in self.params]
