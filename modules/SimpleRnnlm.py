@@ -14,7 +14,6 @@ from TimeSoftmaxWithLoss import TimeSoftmaxWithLoss2
 from TimeSoftmaxWithLoss import TimeSoftmaxWithLoss3
 #from LSTM import LSTM
 from TimeLSTM import TimeLSTM2
-from TimeLSTM import TimeLSTM3
 from common.time_layers import TimeLSTM
 import pickle
 

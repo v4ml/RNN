@@ -14,7 +14,6 @@ from TimeSoftmaxWithLoss import TimeSoftmaxWithLoss2
 from TimeSoftmaxWithLoss import TimeSoftmaxWithLoss3
 #from LSTM import LSTM
 from TimeLSTM import TimeLSTM2
-from TimeLSTM import TimeLSTM3
 from Dropout import dropout2
 from Dropout import dropout
 from common.time_layers import TimeLSTM
@@ -42,37 +41,37 @@ class BetterRnnlm:
         #affine_W = (rn(H,V)/np.sqrt(H)).astype('f')
         affine_b = np.zeros(V).astype('f')
 
-        # self.layers = [
-        #     TimeEmbedding2(embed_W),
-        #     dropout(dropout_ratio),
-        #     #TimeRNN(rnn_Wx, rnn_Wh, rnn_b, stateful=True),
-        #     TimeLSTM2(rnn_Wx0, rnn_Wh0, rnn_b0, stateful=True),
-        #     dropout(dropout_ratio),
-        #     TimeLSTM2(rnn_Wx1, rnn_Wh1, rnn_b1, stateful=True),
-        #     dropout(dropout_ratio),
-        #     #TimeLSTM(rnn_Wx, rnn_Wh, rnn_b, stateful=True),
-        #     TimeAffine2(embed_W.T, affine_b)
-        #     #TimeAffine(affine_W, affine_b)
-        #     #TimeAffine_nob(affine_W)
-        # ]
-
-
-        self.load_params('./BetterRnnlm.pkl')
         self.layers = [
-            TimeEmbedding2(self.params[0]),
-            #dropout(dropout_ratio),
+            TimeEmbedding2(embed_W),
+            dropout(dropout_ratio),
             #TimeRNN(rnn_Wx, rnn_Wh, rnn_b, stateful=True),
-            TimeLSTM2(self.params[1], self.params[2], self.params[3], stateful=True),
-            #dropout(dropout_ratio),
-            TimeLSTM2(self.params[4], self.params[5], self.params[6], stateful=True),
-            #dropout(dropout_ratio),
+            TimeLSTM2(rnn_Wx0, rnn_Wh0, rnn_b0, stateful=True),
+            dropout(dropout_ratio),
+            TimeLSTM2(rnn_Wx1, rnn_Wh1, rnn_b1, stateful=True),
+            dropout(dropout_ratio),
             #TimeLSTM(rnn_Wx, rnn_Wh, rnn_b, stateful=True),
-            TimeAffine2(self.params[7], self.params[8])
+            TimeAffine2(embed_W.T, affine_b)
             #TimeAffine(affine_W, affine_b)
             #TimeAffine_nob(affine_W)
         ]
+
+
+        # self.load_params('./BetterRnnlm.pkl')
+        # self.layers = [
+        #     TimeEmbedding2(self.params[0]),
+        #     #dropout(dropout_ratio),
+        #     #TimeRNN(rnn_Wx, rnn_Wh, rnn_b, stateful=True),
+        #     TimeLSTM2(self.params[1], self.params[2], self.params[3], stateful=True),
+        #     #dropout(dropout_ratio),
+        #     TimeLSTM2(self.params[4], self.params[5], self.params[6], stateful=True),
+        #     #dropout(dropout_ratio),
+        #     #TimeLSTM(rnn_Wx, rnn_Wh, rnn_b, stateful=True),
+        #     TimeAffine2(self.params[7], self.params[8])
+        #     #TimeAffine(affine_W, affine_b)
+        #     #TimeAffine_nob(affine_W)
+        # ]
         self.loss_layer = TimeSoftmaxWithLoss3()
-        self.rnn_layer = [self.layers[1], self.layers[2]]
+        self.rnn_layer = [self.layers[2], self.layers[4]]
 
         self.params, self.grads = [], []
         for layer in self.layers:

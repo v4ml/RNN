@@ -48,6 +48,20 @@ class RnnlmGen(BetterRnnlm):
         sentence = ' '.join([id_to_word[i] for i in word_ids])
         print(sentence)
 
+
+        self.reset_state()
+
+        start_words = 'the meaning of life is'
+        start_ids = [word_to_id[w] for w in start_words.split(' ')]
+
+        for x in start_ids[:-1]:
+            x = np.array(x).reshape(1, 1)
+            self.predict(x)                
+        word_ids = start_ids[:-1] + word_ids
+        txt = ' '.join([id_to_word[i] for i in word_ids])
+        txt = txt.replace(' <eos>', '.\n')
+        print(txt)        
+
     def generate(self, start_id, skip_ids=None, sample_size=1000):
         corpus, word_to_id, id_to_word = ptb.load_data('train')
         corpus_test, word_to_id_test, id_to_word_test = ptb.load_data('test')
