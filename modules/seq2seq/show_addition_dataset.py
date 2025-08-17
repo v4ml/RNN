@@ -1,9 +1,14 @@
 # coding: utf-8
 import sys
-sys.path.append('..')
+
+from numpy import float32
+
+#from modules.generate_better_text import vocab_size
+sys.path.append('./modules')
 from dataset import sequence
 from encoder import Encoder
 from encoder import Decoder
+from common.np import *
 
 (x_train, t_train), (x_test, t_test) = \
     sequence.load_data('addition.txt', seed=1984)
@@ -19,15 +24,26 @@ print(t_train[0])
 # [ 3  0  2  0  0 11  5]
 # [ 6  0 11  7  5]
 
-print(''.join([id_to_char[c] for c in x_train[0]]))
-print(''.join([id_to_char[c] for c in t_train[0]]))
+print(''.join([id_to_char[c] for c in np.asnumpy(x_train[0])]))
+print(''.join([id_to_char[c] for c in np.asnumpy(t_train[0])]))
 # 71+118
 # _189
 
+vocab_size = len(char_to_id)
+wordvec_size = 15
+hidden_size = 15
+time_size = 7
+batch_size = 20
+N, T = x_train.shape
+batch = N//batch_size
 
+encoder = Encoder(vocab_size, wordvec_size, hidden_size)
+hs = np.empty((N, hidden_size), dtype=float32)
+ts = np.argmax(t_train, axis=-1)
 
-encoder = Encoder(x_train)
-hs = encoder.forward(x_train)
+for i in range(batch):
+    h = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], ts[batch_size*i:batch_size*(i+1), :])
+    hs[batch_size*i:batch_size*(i+1), :] = h
 
 decoder = Decoder(hs, t_train)
 
