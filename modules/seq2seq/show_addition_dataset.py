@@ -26,6 +26,9 @@ print(t_train[0])
 
 print(''.join([id_to_char[c] for c in np.asnumpy(x_train[0])]))
 print(''.join([id_to_char[c] for c in np.asnumpy(t_train[0])]))
+
+x_train = x_train[:1000, :]
+t_train = t_train[:1000, :]
 # 71+118
 # _189
 
@@ -39,13 +42,17 @@ batch = N//batch_size
 
 encoder = Encoder(vocab_size, wordvec_size, hidden_size)
 hs = np.empty((N, hidden_size), dtype=float32)
-ts = np.argmax(t_train, axis=-1)
+#ts = np.argmax(t_train, axis=-1)
 
 for i in range(batch):
-    h = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], ts[batch_size*i:batch_size*(i+1), :])
+    h = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], t_train[batch_size*i:batch_size*(i+1), :])    
     hs[batch_size*i:batch_size*(i+1), :] = h
 
-decoder = Decoder(hs, t_train)
+decoder = Decoder(vocab_size, wordvec_size, hidden_size)
+xs = np.full((20,1), 6)
+for i in range(batch):
+    decoder.forward(xs , t_train[batch_size*i:batch_size*(i+1), :], h)
+
 
 N = 20
 T = 7
