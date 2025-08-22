@@ -36,8 +36,9 @@ vocab_size = len(char_to_id)
 wordvec_size = 15
 hidden_size = 15
 time_size = 7
-batch_size = 20
+batch_size = 20 
 N, T = x_train.shape
+N, T1 = t_train.shape
 batch = N//batch_size
 
 encoder = Encoder(vocab_size, wordvec_size, hidden_size)
@@ -51,7 +52,8 @@ for i in range(batch):
 decoder = Decoder(vocab_size, wordvec_size, hidden_size)
 xs = np.full((20,1), 6)
 for i in range(batch):
-    decoder.forward(xs , t_train[batch_size*i:batch_size*(i+1), :], h)
+    for i in range(T1):
+        decoder.forward(xs , t_train[batch_size*i:batch_size*(i+1), :], h)
 
 
 N = 20

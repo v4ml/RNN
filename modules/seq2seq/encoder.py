@@ -116,17 +116,23 @@ class Decoder:
 
     def forward(self, xs, ts, hs):
         N, T = ts.shape
-        D = 15
+        N, D = hs.shape
 
         self.layers[2].set_state(hs)
-        xss = np.empty((N,T,D), dtype=xs.dtype)
-        for i in range(T):
+        xss = np.empty((N,T,13), dtype=xs.dtype)
+        xts = np.empty((N, 1), dtype='int')
+        for t in range(T):
             for layer in self.layers:
                 xs = layer.forward(xs)
-                xss[:, 0, :] = xs[:, 1, :]
+
+            xss[:, t, :] = xs[:, 0, :]
+            # 다음 단어 임베딩 추출
+            xs = xs[:, 0, :].argmax(axis=1)
+            
+            
 
 
-        loss = self.loss_layer.forward(xs, ts)
+        loss = self.loss_layer.forward(xss, ts)
         return loss
         
     
