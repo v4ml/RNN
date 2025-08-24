@@ -34,7 +34,7 @@ class TimeSoftmaxWithLoss3:
         ys = ys.reshape(N*T, -1)
         ts = ts.reshape(N*T)
         ys[np.arange(N*T), ts] -= 1
-        ys.reshape(N,T,-1)
+        ys = ys.reshape(N,T,-1)
         return ys/(N*T)*dout
 
 

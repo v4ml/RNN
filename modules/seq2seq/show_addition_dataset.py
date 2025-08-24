@@ -43,18 +43,26 @@ batch = N//batch_size
 
 encoder = Encoder(vocab_size, wordvec_size, hidden_size)
 hs = np.empty((N, hidden_size), dtype=float32)
-#ts = np.argmax(t_train, axis=-1)
-
-for i in range(batch):
-    h = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], t_train[batch_size*i:batch_size*(i+1), :])    
-    hs[batch_size*i:batch_size*(i+1), :] = h
 
 decoder = Decoder(vocab_size, wordvec_size, hidden_size)
-xs = np.full((20,1), 6)
-for i in range(batch):
-    for i in range(T1):
-        decoder.forward(xs , t_train[batch_size*i:batch_size*(i+1), :], h)
+#ts = np.argmax(t_train, axis=-1)
 
+#for i in range(batch):
+
+
+
+
+for i in range(batch):
+    hs = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], t_train[batch_size*i:batch_size*(i+1), :])    
+    #hs[batch_size*i:batch_size*(i+1), :] = h
+    
+
+    xs = np.full((20,1), 6)
+    #for i in range(T1):
+    loss = decoder.forward(xs , t_train[batch_size*i:batch_size*(i+1), :], hs[:, -1])
+    dout = decoder.backward()
+
+    encoder.backward(dout)
 
 N = 20
 T = 7

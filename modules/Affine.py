@@ -42,7 +42,9 @@ class TimeAffine2:
     
     def backward(self, dout):
         hs, affine_W = self.cache
-        N,T,H = hs.shape
+        #N,T,H = hs.shape
+        N,T,D = dout.shape
+        T = 5
         #daffine_W = np.einsum('nth,ntv->nthv', hs, dout)
         hs = hs.reshape(N*T, -1) # N*TH
         dout = dout.reshape(N*T, -1)  #N*TV

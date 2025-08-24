@@ -66,11 +66,14 @@ class Encoder:
         N, T = xs.shape
         for layer in self.layers:
             xs = layer.forward(xs)
-        hs = xs[:, T-1, :]
-        return hs
+        #hs = xs[:, T-1, :]
+        return xs
 
-    def backward(self):
-        pass
+    def backward(self, dout):
+        dout = self.loss_layer.backward(dout)
+        for layer in reversed(self.layers):
+            dout = layer.backward(dout)
+        return dout
 
 class Decoder:
     def __init__(self, vocab_size, wordvec_size, hidden_size, dropout_ratio=0.5):
@@ -114,20 +117,22 @@ class Decoder:
             self.params += layer.params
             self.grads += layer.grads
 
-    def forward(self, xs, ts, hs):
+    def forward(self, xs, ts, last_h):
         N, T = ts.shape
-        N, D = hs.shape
+        N, D = last_h.shape
 
-        self.layers[2].set_state(hs)
+        self.layers[2].set_state(last_h)
         xss = np.empty((N,T,13), dtype=xs.dtype)
+        hss = np.empty((N,T,13), dtype=xs.dtype)
         xts = np.empty((N, 1), dtype='int')
         for t in range(T):
             for layer in self.layers:
                 xs = layer.forward(xs)
 
             xss[:, t, :] = xs[:, 0, :]
+            hss[:, t, :] = hs[:, 0, :]
             # 다음 단어 임베딩 추출
-            xs = xs[:, 0, :].argmax(axis=1)
+            xs = xs[:, 0, :].argmax(axis=1).reshape(20,1)
             
             
 
@@ -140,6 +145,7 @@ class Decoder:
         dout = self.loss_layer.backward(dout)
         for layer in reversed(self.layers):
             dout = layer.backward(dout)
+        return dout
 
         
     
