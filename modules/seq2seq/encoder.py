@@ -105,10 +105,11 @@ class Decoder:
             TimeLSTM2(rnn_Wx1, rnn_Wh1, rnn_b1, stateful=True),
             #dropout(dropout_ratio),
             #TimeLSTM(rnn_Wx, rnn_Wh, rnn_b, stateful=True),
-            TimeAffine2(affine_W, affine_b)
+            #TimeAffine2(affine_W, affine_b)
             #TimeAffine(affine_W, affine_b)
             #TimeAffine_nob(affine_W)
         ]
+        self.affine_layer = TimeAffine2(affine_W, affine_b)
         self.loss_layer = TimeSoftmaxWithLoss3()
         self.rnn_layer = [self.layers[2], self.layers[4]]
 
@@ -122,17 +123,19 @@ class Decoder:
         N, D = last_h.shape
 
         self.layers[2].set_state(last_h)
-        xss = np.empty((N,T,13), dtype=xs.dtype)
-        hss = np.empty((N,T,13), dtype=xs.dtype)
+        xss = np.empty((N,T,D), dtype=xs.dtype)
+        hss = np.empty((N,T,D), dtype=xs.dtype)
         xts = np.empty((N, 1), dtype='int')
         for t in range(T):
             for layer in self.layers:
                 xs = layer.forward(xs)
-
+        
             xss[:, t, :] = xs[:, 0, :]
-            hss[:, t, :] = hs[:, 0, :]
-            # 다음 단어 임베딩 추출
             xs = xs[:, 0, :].argmax(axis=1).reshape(20,1)
+        xss = self.affine_layer.forward(xss)
+            #hss[:, t, :] = hs[:, 0, :]
+            # 다음 단어 임베딩 추출
+        
             
             
 
@@ -142,9 +145,22 @@ class Decoder:
         
     
     def backward(self, dout=1):
+        
         dout = self.loss_layer.backward(dout)
-        for layer in reversed(self.layers):
-            dout = layer.backward(dout)
+        N,T,H = dout.shape
+        dout = self.affine_layer.backward(dout)
+        #for layer in reversed(self.layers):
+        douts = np.zeros(dout.shape, dtype=dout.dtype)
+        for t in range(T):
+            dout = self.layers[4].backward(dout[:, t, :].reshape(N,1,H))
+            douts [:, t, :] = dout
+        dout = self.layers[3].backward(douts)
+        for t in range(T):
+            dout = self.layers[2].backward(dout[:, t, :].reshape(N,1,H))
+            douts [:, t, :] = dout
+        dout = self.layers[1].backward(douts)
+        dout = self.layers[0].backward(dout)
+        
         return dout
 
         
