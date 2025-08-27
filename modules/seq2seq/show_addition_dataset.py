@@ -57,9 +57,9 @@ for i in range(batch):
     #hs[batch_size*i:batch_size*(i+1), :] = h
     
 
-    xs = np.full((20,1), 6)
+    
     #for i in range(T1):
-    loss = decoder.forward(xs , t_train[batch_size*i:batch_size*(i+1), :], hs[:, -1])
+    loss = decoder.forward(t_train[batch_size*i:batch_size*(i+1), :], hs[:, -1])
     dout = decoder.backward()
 
     encoder.backward(dout)

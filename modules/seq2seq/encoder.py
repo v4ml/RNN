@@ -118,7 +118,34 @@ class Decoder:
             self.params += layer.params
             self.grads += layer.grads
 
-    def forward(self, xs, ts, last_h):
+    def forward(self, ts, prev_h):
+        N, T = ts.shape
+        N, D = prev_h.shape
+
+        self.layers[2].set_state(prev_h)
+        xss = np.empty((N,T,D), dtype=xs.dtype)
+        hss = np.empty((N,T,D), dtype=xs.dtype)
+        xts = np.empty((N, 1), dtype='int')
+        xs = np.full((20,1), 6)
+        for t in range(T):
+            for layer in self.layers:
+                xs = layer.forward(xs)
+        
+            hss[:, t, :] = xs[:, 0, :]
+            xs = xs[:, 0, :].argmax(axis=1).reshape(20,1)
+            xss[:, t, :] = xs[:, 0, :]
+        hss = self.affine_layer.forward(hss)
+            #hss[:, t, :] = hs[:, 0, :]
+            # 다음 단어 임베딩 추출
+        
+        self.cache = [xss]  
+            
+
+
+        loss = self.loss_layer.forward(xss, ts)
+        return loss
+
+    def forward2(self, ts, last_h):
         N, T = ts.shape
         N, D = last_h.shape
 
@@ -126,17 +153,19 @@ class Decoder:
         xss = np.empty((N,T,D), dtype=xs.dtype)
         hss = np.empty((N,T,D), dtype=xs.dtype)
         xts = np.empty((N, 1), dtype='int')
+        xs = np.full((20,1), 6)
         for t in range(T):
             for layer in self.layers:
                 xs = layer.forward(xs)
         
-            xss[:, t, :] = xs[:, 0, :]
+            hss[:, t, :] = xs[:, 0, :]
             xs = xs[:, 0, :].argmax(axis=1).reshape(20,1)
-        xss = self.affine_layer.forward(xss)
+            xss[:, t, :] = xs[:, 0, :]
+        hss = self.affine_layer.forward(hss)
             #hss[:, t, :] = hs[:, 0, :]
             # 다음 단어 임베딩 추출
         
-            
+        self.cache = [xss]  
             
 
 
@@ -147,17 +176,19 @@ class Decoder:
     def backward(self, dout=1):
         
         dout = self.loss_layer.backward(dout)
-        N,T,H = dout.shape
+        
         dout = self.affine_layer.backward(dout)
+        xss = self.cache[0]
+        N,T,H = dout.shape
         #for layer in reversed(self.layers):
         douts = np.zeros(dout.shape, dtype=dout.dtype)
-        for t in range(T):
-            dout = self.layers[4].backward(dout[:, t, :].reshape(N,1,H))
-            douts [:, t, :] = dout
+        for t in range(T-1, -1, -1):
+            dout = self.layers[4].backward(dout[:, 0, :].reshape(N,1,H))
+            douts [:, t, :] = dout[:, 0, :]
         dout = self.layers[3].backward(douts)
-        for t in range(T):
-            dout = self.layers[2].backward(dout[:, t, :].reshape(N,1,H))
-            douts [:, t, :] = dout
+        for t in range(T-1, -1, -1):
+            dout = self.layers[2].backward(dout[:, 0, :].reshape(N,1,H))
+            douts [:, t, :] = dout[:, 0, :]
         dout = self.layers[1].backward(douts)
         dout = self.layers[0].backward(dout)
         
