@@ -117,8 +117,9 @@ class Decoder:
         for layer in self.layers:
             self.params += layer.params
             self.grads += layer.grads
+            
 
-    def forward(self, ts, prev_h):
+    def forward(self, xs, ts, prev_h):
         N, T = ts.shape
         N, D = prev_h.shape
 
