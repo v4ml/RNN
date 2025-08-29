@@ -70,7 +70,6 @@ class Encoder:
         return xs
 
     def backward(self, dout):
-        dout = self.loss_layer.backward(dout)
         for layer in reversed(self.layers):
             dout = layer.backward(dout)
         return dout
@@ -105,11 +104,11 @@ class Decoder:
             TimeLSTM2(rnn_Wx1, rnn_Wh1, rnn_b1, stateful=True),
             #dropout(dropout_ratio),
             #TimeLSTM(rnn_Wx, rnn_Wh, rnn_b, stateful=True),
-            #TimeAffine2(affine_W, affine_b)
+            TimeAffine2(affine_W, affine_b)
             #TimeAffine(affine_W, affine_b)
             #TimeAffine_nob(affine_W)
         ]
-        self.affine_layer = TimeAffine2(affine_W, affine_b)
+        #self.affine_layer = TimeAffine2(affine_W, affine_b)
         self.loss_layer = TimeSoftmaxWithLoss3()
         self.rnn_layer = [self.layers[2], self.layers[4]]
 
@@ -127,24 +126,26 @@ class Decoder:
         xss = np.empty((N,T,D), dtype=xs.dtype)
         hss = np.empty((N,T,D), dtype=xs.dtype)
         xts = np.empty((N, 1), dtype='int')
-        xs = np.full((20,1), 6)
-        for t in range(T):
-            for layer in self.layers:
-                xs = layer.forward(xs)
-        
-            hss[:, t, :] = xs[:, 0, :]
-            xs = xs[:, 0, :].argmax(axis=1).reshape(20,1)
-            xss[:, t, :] = xs[:, 0, :]
-        hss = self.affine_layer.forward(hss)
-            #hss[:, t, :] = hs[:, 0, :]
-            # 다음 단어 임베딩 추출
-        
-        self.cache = [xss]  
-            
+        #xs = np.full((20,1), 6)
 
+        for layer in self.layers:
+            xs = layer.forward(xs)
 
-        loss = self.loss_layer.forward(xss, ts)
+        self.cache = [xs]  
+
+        loss = self.loss_layer.forward(xs, ts)
         return loss
+    
+    def backward(self, dout=1):
+        
+        dout = self.loss_layer.backward(dout)
+        dh = dout.copy()
+        N,T,H = dout.shape
+        for t in range(len(self.layers)-1, 0, -1):
+            dh = self.layers[t].backward(dh)
+        dout = self.layers[0].backward(dh)
+        dh = np.sum(dh, axis=1)
+        return dout, dh
 
     def forward2(self, ts, last_h):
         N, T = ts.shape
@@ -174,7 +175,7 @@ class Decoder:
         return loss
         
     
-    def backward(self, dout=1):
+    def backward2(self, dout=1):
         
         dout = self.loss_layer.backward(dout)
         

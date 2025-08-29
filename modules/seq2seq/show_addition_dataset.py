@@ -38,7 +38,7 @@ hidden_size = 15
 time_size = 7
 batch_size = 20 
 N, T = x_train.shape
-N, T1 = t_train.shape
+N, Tt = t_train.shape
 batch = N//batch_size
 
 encoder = Encoder(vocab_size, wordvec_size, hidden_size)
@@ -49,20 +49,30 @@ decoder = Decoder(vocab_size, wordvec_size, hidden_size)
 
 #for i in range(batch):
 
+tt_train = np.zeros_like(t_train, dtype=np.int32) #np.zeros((N,Tt), dtype=t_train.dtype)
+tt_train[:, 4] = 5
+print("t_train.shape :  ", t_train.shape)
+print("tt_train.shape :  ", tt_train.shape)
+tt_train[:, :4] = np.array(t_train[:, 1:5], dtype=tt_train.dtype)
+
+max_epoch = 50
+
+for epoch in range(max_epoch):
+    for i in range(batch):
+        hs = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], t_train[batch_size*i:batch_size*(i+1), :])    
+        #hs[batch_size*i:batch_size*(i+1), :] = h
+        
+        #for i in range(T1):
 
 
-
-for i in range(batch):
-    hs = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], t_train[batch_size*i:batch_size*(i+1), :])    
-    #hs[batch_size*i:batch_size*(i+1), :] = h
+        loss = decoder.forward(t_train[batch_size*i:batch_size*(i+1), :], tt_train[batch_size*i:batch_size*(i+1), :], hs[:, -1])
+        dout, dh = decoder.backward()
+        dh = dh.reshape(batch_size,1,hidden_size)
+        dh = np.repeat(dh, 7, axis=1)
+        dout = encoder.backward(dh)
     
+    ppl = eval
 
-    t_train
-    #for i in range(T1):
-    loss = decoder.forward(t_train[batch_size*i:batch_size*(i+1), :], hs[:, -1])
-    dout = decoder.backward()
-
-    encoder.backward(dout)
 
 N = 20
 T = 7
