@@ -9,6 +9,7 @@ from dataset import sequence
 from encoder import Encoder
 from encoder import Decoder
 from common.np import *
+from seq2seq import Seq2seq
 
 (x_train, t_train), (x_test, t_test) = \
     sequence.load_data('addition.txt', seed=1984)
@@ -57,22 +58,60 @@ tt_train[:, :4] = np.array(t_train[:, 1:5], dtype=tt_train.dtype)
 
 max_epoch = 50
 
-for epoch in range(max_epoch):
-    for i in range(batch):
-        hs = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], t_train[batch_size*i:batch_size*(i+1), :])    
-        #hs[batch_size*i:batch_size*(i+1), :] = h
+model = Seq2seq(encoder, decoder, batch_size, hidden_size, time_size)
+
+for epoch in range(1):
+    model.forward(x_train, t_train)
+    model.backward()
+
+
+    model.generate(x_test, char_to_id.get('_'), 5)
+
+    # for i in range(batch):
+    #     hs = encoder.forward(x_train[batch_size*i:batch_size*(i+1), :], t_train[batch_size*i:batch_size*(i+1), :])    
+    #     #hs[batch_size*i:batch_size*(i+1), :] = h
         
-        #for i in range(T1):
+    #     #for i in range(T1):
 
 
-        loss = decoder.forward(t_train[batch_size*i:batch_size*(i+1), :], tt_train[batch_size*i:batch_size*(i+1), :], hs[:, -1])
-        dout, dh = decoder.backward()
-        dh = dh.reshape(batch_size,1,hidden_size)
-        dh = np.repeat(dh, 7, axis=1)
-        dout = encoder.backward(dh)
+    #     loss = decoder.forward(t_train[batch_size*i:batch_size*(i+1), :], tt_train[batch_size*i:batch_size*(i+1), :], hs[:, -1])
+    #     dout, dh = decoder.backward()
+    #     dh = dh.reshape(batch_size,1,hidden_size)
+    #     dh = np.repeat(dh, 7, axis=1)
+    #     dout = encoder.backward(dh)
     
-    ppl = eval
 
+
+
+def eval_perplexity(model, corpus, batch_size=10, time_size=35):
+    print('퍼플렉서티 평가 중 ...')
+    corpus_size = len(corpus)
+    total_loss, loss_cnt = 0, 0
+    max_iters = (corpus_size - 1) // (batch_size * time_size)
+    jump = (corpus_size - 1) // batch_size
+
+    for iters in range(max_iters):
+        xs = np.zeros((batch_size, time_size), dtype=np.int32)
+        ts = np.zeros((batch_size, time_size), dtype=np.int32)
+        time_offset = iters * time_size
+        offsets = [time_offset + (i * jump) for i in range(batch_size)]
+        for t in range(time_size):
+            for i, offset in enumerate(offsets):
+                xs[i, t] = corpus[(offset + t) % corpus_size]
+                ts[i, t] = corpus[(offset + t + 1) % corpus_size]
+
+        try:
+            loss = model.forward(xs, ts, train_flg=False)
+        except TypeError:
+            loss = model.forward(xs, ts)
+        total_loss += loss
+
+        sys.stdout.write('\r%d / %d' % (iters, max_iters))
+        sys.stdout.flush()
+
+    print('')
+    ppl = np.exp(total_loss / max_iters)
+    return ppl
 
 N = 20
 T = 7

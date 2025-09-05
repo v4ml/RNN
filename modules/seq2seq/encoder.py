@@ -62,7 +62,7 @@ class Encoder:
             self.params += layer.params
             self.grads += layer.grads
 
-    def forward(self, xs, ts):
+    def forward(self, xs):
         N, T = xs.shape
         for layer in self.layers:
             xs = layer.forward(xs)
@@ -118,7 +118,7 @@ class Decoder:
             self.grads += layer.grads
             
 
-    def forward(self, xs, ts, prev_h):
+    def forward(self, xs, ts, prev_h, generate=False):
         N, T = ts.shape
         N, D = prev_h.shape
 
@@ -132,7 +132,7 @@ class Decoder:
             xs = layer.forward(xs)
 
         self.cache = [xs]  
-
+        
         loss = self.loss_layer.forward(xs, ts)
         return loss
     
@@ -146,6 +146,23 @@ class Decoder:
         dout = self.layers[0].backward(dh)
         dh = np.sum(dh, axis=1)
         return dout, dh
+    
+    def generate(self, start_id, length, prev_h):
+        #T = length
+        xs = self.cache[0]
+        _, T, D = xs.shape
+
+        self.layers[2].set_state(prev_h)
+        xss = np.empty((1,T,D), dtype=xs.dtype)
+        hss = np.empty((1,T,D), dtype=xs.dtype)
+        xts = np.empty((1, 1), dtype='int')
+        #xs = np.full((20,1), 6)
+
+        for layer in self.layers:
+            xs = layer.forward(xs)
+
+        self.cache = [xs]  
+
 
     def forward2(self, ts, last_h):
         N, T = ts.shape
@@ -173,7 +190,10 @@ class Decoder:
 
         loss = self.loss_layer.forward(xss, ts)
         return loss
+    
+    
         
+
     
     def backward2(self, dout=1):
         
