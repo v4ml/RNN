@@ -150,16 +150,17 @@ class Decoder:
     def generate(self, start_id, length, prev_h):
         #T = length
         xs = self.cache[0]
-        _, T, D = xs.shape
+        N, T, V = xs.shape
+        N, H = prev_h.shape
 
         self.layers[2].set_state(prev_h)
-        xss = np.empty((1,T,D), dtype=xs.dtype)
-        hss = np.empty((1,T,D), dtype=xs.dtype)
+        xss = np.zeros((1,V), dtype='int')
+        hss = npxzzzzzzzzzzzzzz xdxxs.empty((1,T,H), dtype=xs.dtype)
         xts = np.empty((1, 1), dtype='int')
         #xs = np.full((20,1), 6)
 
         for layer in self.layers:
-            xs = layer.forward(xs)
+            xss = layer.forward(xss)
 
         self.cache = [xs]  
 

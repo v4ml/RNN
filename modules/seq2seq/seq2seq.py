@@ -41,6 +41,6 @@ class Seq2seq:
         N, _ = question.shape
         batch = N//self.batch_size
         for i in range(batch):
-            hs = self.encoder.forward(question)
+            hs = self.encoder.forward(question[i*20:(i+1)*20, :])
             ts = self.decoder.generate(start_id, length, hs[:, -1])
         return ts
